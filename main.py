@@ -170,6 +170,8 @@ def get_possibility_1_place_list(possibility_list):
     """
     global num_sqrt
     base_list = []
+
+    # そもそも1つしか入らない枠が既に確定しているのであれば入れてしまう
     for row in range(num):
         for col in range(num):
             if len(possibility_list[row][col]) != 1:
@@ -178,6 +180,67 @@ def get_possibility_1_place_list(possibility_list):
             c_list = [i, col, row]
             if c_list not in base_list:
                 base_list.append(c_list)
+
+    np_possibility_list = np.array(possibility_list)
+
+    # rowの中で一意に決まったものがあればそれを返す
+    for row in range(num):
+        row_list = np_possibility_list[row, :]
+        for i in range(1, num + 1):
+            col_ = -1
+            for col in range(num):
+                if i not in row_list[col]:
+                    continue
+                if col_ >= 0:
+                    col_ = -1
+                    break
+                col_ = col
+            if col_ >= 0:
+                c_list = [i, col_, row]
+                if c_list not in base_list:
+                    base_list.append(c_list)
+    # colの中で一意に決まったものがあればそれを返す
+    for col in range(num):
+        col_list = np_possibility_list[:, col]
+        for i in range(1, num + 1):
+            row_ = -1
+            for row in range(num):
+                if i not in col_list[row]:
+                    continue
+                if row_ >= 0:
+                    row_ = -1
+                    break
+                row_ = row
+            if row_ >= 0:
+                c_list = [i, col, row_]
+                if c_list not in base_list:
+                    base_list.append(c_list)
+    # areaの中で一意に決まったものがあればそれを返す
+    for area_row_s in range(0, num, num_sqrt):
+        for area_col_s in range(0, num, num_sqrt):
+            area_list = np_possibility_list[
+                area_row_s : area_row_s + num_sqrt,
+                area_col_s : area_col_s + num_sqrt,
+            ]
+            for i in range(1, num + 1):
+                area_ = -1
+                for area in range(num):
+                    row_ = area // num_sqrt
+                    col_ = area % num_sqrt
+                    if i not in area_list[row_][col_]:
+                        continue
+                    if area_ >= 0:
+                        area_ = -1
+                        break
+                    area_ = row_ * num_sqrt + col_
+                if area_ >= 0:
+                    c_list = [
+                        i,
+                        area_col_s + area_ % num_sqrt,
+                        area_row_s + area_ // num_sqrt,
+                    ]
+                    if c_list not in base_list:
+                        base_list.append(c_list)
     return base_list
 
 
@@ -247,14 +310,15 @@ def get_area_list(number_list):
     ]
     return area_list
 
-def output_answer(number_list):
+def output_answer(number_list, is_summary=False):
     """答えを出力する
 
     Args:
         number_list (numpy.array): 数字のリスト
     """
     global solve_cnt, no_cnt, ans_cnt
-    ans_cnt += 1
+    if not is_summary:
+        ans_cnt += 1
     ans_list.append(number_list)
     print(number_list)
     print(f'time : {"{:.3f}".format(time.time() - start_time)}s')
@@ -278,7 +342,7 @@ def main():
     solve_number_place(all_number_list, column_list, row_list, area_list)
 
     print("---result---")
-    output_answer(ans_list[0])
+    output_answer(ans_list[0], True)
 
 
 if __name__ == "__main__":
