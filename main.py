@@ -137,24 +137,26 @@ def get_possibility_list(number_list, column_list, row_list, area_list):
 
 
 def get_possibility_place_list(possibility_list):
-    """まだ決定していない座標のリストを返却する
+    """各マスの候補となる数字の集合の数が最小となるマスの座標のリストを返す
     座標のリストは、行番号 * num + 列番号で表してる
 
     Args:
         possibility_list (list of list): 各マスの候補となる数字の集合が入ったリスト
 
     Returns:
-        list: まだ決定していない座標のリスト
+        list: 各マスの候補となる数字の集合の数が最小となるマスの座標のリスト
     """
 
-    lis = list()
+    flag = False
+    dic = defaultdict(list)
     for row in range(num):
         for col in range(num):
             possibility_num = len(possibility_list[row][col])
             if possibility_num == 0:
                 continue
-            lis.append(row * num + col)
-    return lis
+            flag = True
+            dic[possibility_num].append(row * num + col)
+    return dic[min(dic.keys())] if flag else []
 
 
 def get_possibility_1_place_list(possibility_list):
